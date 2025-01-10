@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Business.Factories;
 using Business.Interfaces;
-using Presentation.Console_MainApp.Dtos;
 using Business.Models;
-using Business.Services;
+
 
 namespace Presentation.Console_MainApp.Dialogs;
 
@@ -12,29 +11,31 @@ public class MenuDialog(IContactService contactService)
     private readonly IContactService _contactService = contactService;
 
 
-    public void UserRegistrationDialog()
+    public string PromptAndValidate(string prompt, string propertyName, UserRegistrationForm contact)
     {
-        var urf = new UserRegistrationForm();
-
-        urf.Name = PromptAndValidate("Enter your name: ", nameof(urf.Name));
-        urf.Email = PromptAndValidate("Enter your Email: ", nameof(urf.Email));
-
-        Console.WriteLine("User registration was successful!");
-        Console.ReadKey();
-    }
-
-    public string PromptAndValidate(string prompt, string propertyName)
-    {
-        while (true){
+        while (true)
+        {
             Console.WriteLine();
             Console.Write(prompt);
+
             var input = Console.ReadLine() ?? string.Empty;
+            var property = contact.GetType().GetProperty(propertyName);
+
+            if (property == null)
+            {
+                Console.WriteLine($"Property '{propertyName}' does not exist on {contact.GetType().Name}. Please check the property name.");
+                return string.Empty;
+            }
+                property.SetValue(contact, input);
 
             var results = new List<ValidationResult>();
-            var context = new ValidationContext(new UserRegistrationForm()) { MemberName = propertyName };
+            var context = new ValidationContext(contact) { MemberName = propertyName };
 
-            if (Validator.TryValidateProperty(input, context, results))
+            if (Validator.TryValidateProperty(property.GetValue(contact), context, results))
+            {
+
                 return input;
+            }
 
             Console.WriteLine($"{results[0].ErrorMessage}. Please try again.");
         }
@@ -64,21 +65,27 @@ public class MenuDialog(IContactService contactService)
             }
         }
     }
-
     public void AddNewContact()
     {
-        var contact = ContactFactory.Create();
+        var form = ContactFactory.Create();
 
         Console.Clear();
         Console.WriteLine("----------ADD NEW CONTACT----------");
-        Console.WriteLine("Enter Your Name: ");
-        contact.Name = Console.ReadLine()!;
 
-        var result = _contactService.CreateContact(contact);
-        if (result)
-            Console.WriteLine("contact was created successfully!");
+        form.FirstName = PromptAndValidate("Enter your first name: ", nameof(form.FirstName), form);
+        form.LastName = PromptAndValidate("Enter your last name: ", nameof(form.LastName), form);
+        form.Email = PromptAndValidate("Enter your Email: ", nameof(form.Email), form);
+
+        var isSucceeded = _contactService.CreateContact(form);
+
+        if (isSucceeded)
+        {
+            Console.WriteLine("User registration was successful!");
+        }
         else
+        {
             Console.WriteLine("Unable to create new contact.");
+        }
 
         Console.ReadKey();
     }

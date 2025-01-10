@@ -23,12 +23,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Factories\" />
-    <Folder Include="Services\" />
+    <ProjectReference Include="..\Business\Business.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Business\Business.csproj" />
+    <Folder Include="Factories\" />
+    <Folder Include="Interfaces\" />
+    <Folder Include="Models\" />
+    <Folder Include="Repositories\" />
   </ItemGroup>
 
 </Project>

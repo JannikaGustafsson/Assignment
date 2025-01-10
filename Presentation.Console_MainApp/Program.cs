@@ -7,13 +7,11 @@ using Presentation.Console_MainApp.Dialogs;
 
 
 var ServiceProvider = new ServiceCollection()
-    .AddSingleton<IFileService>(new FileService("Data", "contacts.json"))
-    .AddSingleton<IContactRepository, ContactRepository>()
-    .AddSingleton<IContactService, ContactService>()
-    .AddTransient<MenuDialog>()
+    .AddSingleton<IUserFileService>(sp => new UserFileService("Data", "contacts.json"))
+    .AddScoped<IContactRepository, ContactRepository>()
+    .AddScoped<IContactService, ContactService>()
+    .AddScoped<MenuDialog>()
     .BuildServiceProvider();
 
 var menuDialog = ServiceProvider.GetRequiredService<MenuDialog>();
 menuDialog.MainMenu();
-
-
